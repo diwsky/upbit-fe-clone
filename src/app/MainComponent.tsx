@@ -1,28 +1,39 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "reactjs-popup";
 
 const MainComponent = (content: string) => {
   const openTick = (_: any) => {
-    console.log("Put logic modal here");
-    setChecked((e) => !e);
+    setOpenModal(true);
   };
 
-  const handleOnscroll = () => {
-    console.log("already scrolled");
+  const onAgree = (_: any) => {
+    setAgree(true);
+    setOpenModal(false);
+  };
+
+  const onCloseModal = () => {
+    if (agree) {
+      setChecked(true);
+    } else {
+      setChecked(false);
+    }
+    setOpenModal(false);
   };
 
   useEffect(() => {
     console.log(`${typeof content} ${content.toString()}`);
   }, []);
 
-  const [checked, setChecked] = useState(true);
-  const [disabled, setDisabled] = useState(false);
+  const [openModal, setOpenModal] = useState(false);
+  const [checked, setChecked] = useState(false);
+  const [agree, setAgree] = useState(false);
+  const [disabled, setDisabled] = useState(true);
 
-  const stringHtml = `<h1 id="terms-of-use">Terms of Use</h1>
-<p>Last Updated : [26 January 2024]</p>
+  const stringHtml = `
+<b>Last Updated : 26 January 2024</b>
 <h2 id="article-1-purpose-and-application-">Article 1 (Purpose and Application)</h2>
 <ol>
 <li><p>The purpose of these Terms of Use is to set forth the rights, obligations and responsibilities of PT Upbit Exchange Indonesia (hereinafter &quot;Company&quot; or &quot;we&quot;, &quot;us&quot; and &quot;our&quot;) and the Users or &quot;you&quot; and &quot;your&quot;, concerning the Services. This User Agreement (as defined under Article 2 below) is a legal contract between Users and the Company, and accordingly, Users should read all the terms and conditions carefully as they affect the Users&#39; legal rights, by accessing the Upbit Site or using the Services.</p>
@@ -162,7 +173,6 @@ const MainComponent = (content: string) => {
             className="py-4 px-4 my-1 border w-full"
             placeholder="Referral Code (optional)"
           />
-
           <div
             id="checkbox"
             className="flex flex-row w-full pt-4 items-center text-left my-2"
@@ -179,20 +189,17 @@ const MainComponent = (content: string) => {
             >
               <p className="flex text-left text-black">
                 I certify that I am 18 years of age or older, and I agree to the
-                <span className="text-blueUpbit-2 mx-1">
-                  Terms of Use
-                </span> and{" "}
+                <span className="text-blueUpbit-2 mx-1">Terms & Condition</span>
+                and
                 <span className="text-blueUpbit-2 mx-1">Privacy Policy</span>.
               </p>
             </label>
           </div>
-
           <button
             className={`flex text-primary mt-4 ${
-              disabled ? "bg-neutralGrey2" : "bg-blueUpbit-1"
+              agree ? "bg-blueUpbit-1" : "bg-neutralGrey2"
             } w-full justify-center p-4 text-center`}
-            disabled={disabled}
-            // onClick={(e) => setDisabled(!disabled)}
+            disabled={agree}
             onClick={(e) => setChecked(!e)}
           >
             Sign Up
@@ -201,29 +208,50 @@ const MainComponent = (content: string) => {
             contentStyle={{
               width: "50%",
             }}
-            open={checked}
+            open={openModal}
+            onClose={onCloseModal}
             modal
             position="center center"
-            overlayStyle={{ backdropFilter: "blur(5px)" }}
+            overlayStyle={{ backdropFilter: "blur(2px)" }}
           >
             <div
               id="square"
               className="flex w-full bg-primary p-6 rounded-md flex-col items-center text-black"
             >
-              <p className="text-xl font-medium">Terms of Use</p>
+              <p className="text-xl font-medium">Terms and Condition</p>
 
-              <section className="flex overflow-auto h-64 md:h-96 rounded-sm p-4 my-2 w-11/12 border-black border-2">
-                <div
-                  onScroll={handleOnscroll}
-                  className="prose"
+              <div
+                id="scrollableDiv"
+                ref={(node) => {
+                  const div = document.getElementById("scrollableDiv");
+
+                  div?.addEventListener("scroll", () => {
+                    console.log(
+                      `${div.scrollTop} + ${div.clientHeight} >= ${div.scrollHeight}`
+                    );
+                    if (div.scrollTop + div.clientHeight >= div.scrollHeight) {
+                      console.log("reading done!");
+                      setDisabled(false);
+                    }
+                  });
+                }}
+                className="flex overflow-auto h-96 rounded-sm p-4 my-2 w-11/12 border-black border-2"
+              >
+                <article
+                  className="prose-lg max-[767px]:prose"
                   dangerouslySetInnerHTML={{
                     __html: stringHtml,
                   }}
                 />
-              </section>
-
-              <button className="w-11/12 bg-blueUpbit-1 flex justify-center text-primary p-2 rounded-sm m-2">
-                Done
+              </div>
+              <button
+                disabled={disabled}
+                onClick={onAgree}
+                className={`${
+                  disabled ? "bg-neutralGrey2" : "bg-blueUpbit-1"
+                } w-11/12  flex justify-center text-primary p-2 rounded-sm m-2`}
+              >
+                I have read the Terms and Condition
               </button>
             </div>
           </Popup>
